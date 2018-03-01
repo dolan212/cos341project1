@@ -17,14 +17,25 @@ public class NFABuilder
 			char c = input.charAt(i);
 			if(c == '.' || c == '|' || c == '*')
 			{
-				char op = stck.peek();
-				while(isHigherPrecedence(op, c))
+				while(!stck.empty() && isOperator(stck.peek()) && isHigherPrecedence(stck.peek(), c))
 				{
 					output += stck.pop();
-					op = stck.peek();
 				}
+				stck.push(c);
 			}	
+			else if(c == '(')
+				stck.push(c);
+			else if(c == ')')
+			{
+				while(stck.peek() != '(')
+					output += stck.pop();
+				stck.pop();
+			}
+			else output += c;
 		}
+		while(!stck.empty())
+			output += stck.pop();
+		return output;
 	}
 	public static boolean isOperator(char in)
 	{
@@ -36,5 +47,6 @@ public class NFABuilder
 		else if(lhs == '|' && rhs == '.') return false;
 		else if(lhs == '*') return true;
 		else if(rhs == '*') return false;
+		else return false;
 	}
 }
