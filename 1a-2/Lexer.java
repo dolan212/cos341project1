@@ -105,6 +105,7 @@ public class Lexer
 						tokenList.add(new Token(TokenType.STR_INDIC,"\""));
 						parseString();
 						tokenList.add(new Token(TokenType.STR_INDIC,"\""));
+						currentPosition--;
 						break;
 					case '<':
 						//comparison symbol
@@ -174,7 +175,8 @@ public class Lexer
 			Token temp;
 
 			//remember where word begins
-			wordBeginIndex = currentPosition++;
+			// wordBeginIndex = currentPosition++;
+			currentPosition++; //skip "
 
 			//while next char is valid
 			while(currentPosition<srcArray.length)

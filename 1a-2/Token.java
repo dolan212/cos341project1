@@ -2,7 +2,7 @@ public class Token
 {
 	Lexer.TokenType type;
 	String data;
-	static int num = 0;
+	static int num = 1;
 	int myNum;
 	public Token(Lexer.TokenType type, String data)
 	{	
