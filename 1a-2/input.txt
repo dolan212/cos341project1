@@ -1,0 +1,2 @@
+for varname ezpz eq halt for() "lekker"
+-10 num 50909 "indeed"
