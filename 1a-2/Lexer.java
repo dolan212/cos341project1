@@ -2,6 +2,7 @@ import java.util.LinkedList;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.io.PrintWriter;
 public class Lexer
 {
 	Scanner sc;
@@ -32,16 +33,11 @@ public class Lexer
 			sc = new Scanner(new File(path));			
 		}catch(FileNotFoundException e)
 		{
-			
+			System.out.println("File: " + path + " not found. Exiting");
+			System.exit(0);
 		}
 
 		tokenList = new LinkedList<Token>();
-
-		// if(sc.hasNextLine())
-		// 	input = sc.nextLine();
-		
-		// while(sc.hasNextLine())
-		// 	input += "\n" + sc.nextLine();
 
 		input = sc.useDelimiter("\\Z").next(); //scan entire file
 
@@ -49,6 +45,26 @@ public class Lexer
 		System.out.println("Array length: "+ srcArray.length);
 
 		read();
+		printToFile();
+	}
+
+	public void printToFile()
+	{
+		try{
+			PrintWriter writer = new PrintWriter("output.txt");
+			String output= "";
+			for(int i = 0; i < tokenList.size(); i ++)
+				output+=tokenList.get(i).toString() + "\n";
+
+			writer.write(output);
+
+			writer.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		
 	}
 
 	public void read()
@@ -65,7 +81,7 @@ public class Lexer
 				// System.out.println("Processing Letter");
 				processLetter();
 			}
-			else if(current == ' ' || current == '\n')
+			else if(current == ' ' || current == '\n' || current == 13)
 			{
 				//current is a seperator symbol
 				// System.out.println("Skipping space or endline");
@@ -126,6 +142,9 @@ public class Lexer
 						tokenList.add(new Token(TokenType.ASSIGN,"("));
 						//assignment operator
 						break;
+					default:
+						System.out.println("Error reading char: "+ current + " aborting");
+						System.exit(0);
 				}
 
 				currentPosition++;
@@ -165,8 +184,10 @@ public class Lexer
 				if((next >= 'a' && next <= 'z') || (next >= '0' && next <= '9'))
 				{					
 					word += next;
-					currentPosition++;
-
+					currentPosition++;					
+				}
+				else
+				{
 					//check if word is a keyword
 					temp = isKeyWord(word);
 					if(temp!=null)
@@ -174,9 +195,9 @@ public class Lexer
 						tokenList.add(temp);
 						return;
 					}
-				}
-				else
+
 					break;				
+				}
 			}
 
 			//add variable token
@@ -193,7 +214,7 @@ public class Lexer
 		if(next == '-')
 		{
 			//add negative symbol
-			System.out.println("negative number");
+			//System.out.println("negative number");
 			num = next+"";
 			next = srcArray[currentPosition++];
 		}		
@@ -224,7 +245,7 @@ public class Lexer
 		{
 			//throw numeric error
 			System.out.println("Numeric Syntax Error: At " + (currentPosition-1) +" with char '" + next+"'");
-			return;
+			System.exit(0);
 		}
 	}
 
@@ -261,13 +282,30 @@ public class Lexer
 		currentPosition++;
 		
 		//while we are in bounds and string is not greater than 8 chars long
-		while(currentPosition < srcArray.length && strLength <= 8)
+		while(currentPosition < srcArray.length)
 		{
+			if(strLength > 8)
+			{
+				System.out.println("String Error: Length " + strLength + " out of bounds");
+				System.exit(0);
+			}
+
+			//move to next char
 			next = srcArray[currentPosition++];
+
+			//make sure char isnt an "invisible" char
+			if(next == '\n' || next == 13)
+			{
+				currentPosition++;
+				continue;
+			}
+
 			strLength++;
 
 			if(next == '\"')
 				break;//exit loop - reached end of string
+			
+			// currentPosition++;
 
 			temp+=next; //add char to string
 		}
@@ -330,7 +368,7 @@ public class Lexer
 			case 6: //string || output
 				if(word.equals("string"))
 					return new Token(TokenType.TYPE,"str"); //'string' type
-				else if(word.equals("output"));
+				else if(word.equals("output"))
 					return new Token(TokenType.IO,"out");
 		}
 
