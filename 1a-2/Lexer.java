@@ -14,7 +14,7 @@ public class Lexer
 
 	public enum TokenType {
 		VAR(0), INT(1), STRUC(2) ,COMP(3), BOOL(4), NUM_OP(5), 
-		STR(6), GROUP(7), ASSIGN(8), IO(9), HALT(10), TYPE(11), 
+		STR(6), STR_INDIC(13), GROUP(7), ASSIGN(8), IO(9), HALT(10), TYPE(11), 
 		PROC(12), INVALID(-1);
 
 		public int type;
@@ -37,13 +37,13 @@ public class Lexer
 
 		tokenList = new LinkedList<Token>();
 
-		if(sc.hasNext())
-			input = sc.nextLine();
-		else
-			//no file found
+		// if(sc.hasNextLine())
+		// 	input = sc.nextLine();
 		
-		while(sc.hasNext())
-			input += "\n" + sc.nextLine();
+		// while(sc.hasNextLine())
+		// 	input += "\n" + sc.nextLine();
+
+		input = sc.useDelimiter("\\Z").next(); //scan entire file
 
 		srcArray = input.toCharArray();
 		System.out.println("Array length: "+ srcArray.length);
@@ -76,6 +76,7 @@ public class Lexer
 			else if((current >= '1' && current <= '9') || current == '-')
 			{
 				//process input as number
+				System.out.println("Processing number");
 				processNumber();
 			}
 			else
@@ -84,7 +85,10 @@ public class Lexer
 				{
 					case '\"':
 						//String symbol
+						//add symbol to linked list
+						tokenList.add(new Token(TokenType.STR_INDIC,"\""));
 						parseString();
+						tokenList.add(new Token(TokenType.STR_INDIC,"\""));
 						break;
 					case '<':
 						//comparison symbol
@@ -182,17 +186,17 @@ public class Lexer
 
 	public void processNumber()
 	{
-		char next = current;
+		char next = srcArray[currentPosition++]; //post increment = current
 		String num = "";
 
 		//working with a negative int
-		if(current == '-')
+		if(next == '-')
 		{
 			//add negative symbol
-			num = current+"";
-
+			System.out.println("negative number");
+			num = next+"";
 			next = srcArray[currentPosition++];
-		}
+		}		
 		
 		//first number must be from 1-9
 		if(next >= '1' && next <= '9')
@@ -200,12 +204,15 @@ public class Lexer
 			num += next;					
 
 			//continue
-			while(currentPosition<srcArray.length)
+			while(currentPosition < srcArray.length)
 			{
-				next = srcArray[currentPosition++];
+				next = srcArray[currentPosition];
 
 				if(next >= '0' && next <= '9')
+				{
 					num+= next;
+					currentPosition++;
+				}
 				else
 					break;
 			}
@@ -216,6 +223,7 @@ public class Lexer
 		else
 		{
 			//throw numeric error
+			System.out.println("Numeric Syntax Error: At " + (currentPosition-1) +" with char '" + next+"'");
 			return;
 		}
 	}
