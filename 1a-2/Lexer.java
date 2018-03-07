@@ -25,6 +25,7 @@ public class Lexer
 		}
 
 		int getVal(){return type;}
+		
 	}
 
 	public Lexer(String path)
@@ -202,6 +203,12 @@ public class Lexer
 				}
 			}
 
+			temp = isKeyWord(word);
+			if(temp != null)
+			{
+				tokenList.add(temp);
+				return;
+			}
 			//add variable token
 			tokenList.add(new Token(TokenType.VAR,word));
 		}
@@ -364,14 +371,14 @@ public class Lexer
 				if(word.equals("while"))
 					return new Token(TokenType.STRUC,"while");
 				else if(word.equals("input"))
-					return new Token(TokenType.IO,"in");
+					return new Token(TokenType.IO,"input");
 				break;
 
 			case 6: //string || output
 				if(word.equals("string"))
-					return new Token(TokenType.TYPE,"str"); //'string' type
+					return new Token(TokenType.TYPE,"string"); //'string' type
 				else if(word.equals("output"))
-					return new Token(TokenType.IO,"out");
+					return new Token(TokenType.IO,"output");
 		}
 
 		return null; //not a keyword
