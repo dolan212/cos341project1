@@ -1,3 +1,6 @@
-"hello" "is valid" "ayyylmao" andifelseor 
-this is a very long string and if output () {} , ; "butwhy"
--666 abc12h string
+qwertyuiopasdfghjklzxcvbnm0123456789 longvarname 
+ifif() "" "str 123"; 
+if else while then for{}num string bool
+add sub    mult  and or not test orand 
+eq <>eee< halt proc,= input output var123name 
+123 1234 -3450 

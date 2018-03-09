@@ -141,7 +141,7 @@ public class Lexer
 						tokenList.add(new Token(TokenType.GROUP,";"));
 						break;
 					case '=':
-						tokenList.add(new Token(TokenType.ASSIGN,"("));
+						tokenList.add(new Token(TokenType.ASSIGN,"="));
 						//assignment operator
 						break;
 					default:
@@ -159,7 +159,7 @@ public class Lexer
 		//check if possible for word to be a reserved word
 		if( current == 'c' || current == 'd' || current == 'g' ||
 			current == 'j' || current == 'k' || current == 'l' ||
-			current == 'm' || current == 'q' ||	current == 'r' || 
+			current == 'q' ||	current == 'r' || 
 			current == 'u' || current == 'v' ||	current == 'x' ||
 			current == 'y' || current == 'z')
 		{
