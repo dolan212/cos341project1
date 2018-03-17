@@ -2,4 +2,5 @@
 *.class
 .classpath
 .project
-
+workbench.xmi
+*.txt

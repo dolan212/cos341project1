@@ -90,7 +90,7 @@ public class Lexer
 				continue;
 
 			}
-			else if((current >= '1' && current <= '9') || current == '-')
+			else if((current >= '0' && current <= '9') || current == '-')
 			{
 				//process input as number
 				System.out.println("Processing number");
@@ -226,10 +226,15 @@ public class Lexer
 			//System.out.println("negative number");
 			num = next+"";
 			next = srcArray[currentPosition++];
+			if(next == '0')
+			{
+				System.out.println("Number Error: '-0' is not allowed!");
+				System.exit(0);
+			}
 		}		
 		
 		//first number must be from 1-9
-		if(next >= '1' && next <= '9')
+		if(next >= '0' && next <= '9')
 		{
 			num += next;					
 
@@ -253,7 +258,7 @@ public class Lexer
 		else
 		{
 			//throw numeric error
-			System.out.println("Numeric Syntax Error: At " + (currentPosition-1) +" with char '" + next+"'");
+			System.out.println("Number Error: At " + (currentPosition-1) +" with char '" + next+"'");
 			System.exit(0);
 		}
 	}
@@ -301,6 +306,12 @@ public class Lexer
 
 			//move to next char
 			next = srcArray[currentPosition++];
+			System.out.println("Reading character " + next);
+			if(!((next >= 'a' && next <= 'z') || (next >= '0' && next <= '9') || next == '\"' || next == ' '))
+			{
+				System.out.println("String Error: Character " + next + " is not a valid string character!");
+				System.exit(0);
+			}
 
 			//make sure char isnt an "invisible" char
 			if(next == '\n' || next == 13)
