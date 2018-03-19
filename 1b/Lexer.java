@@ -16,16 +16,7 @@ public class Lexer
 	public enum TokenType {
 		VAR(0), INT(1), STRUC(2) ,COMP(3), BOOL(4), NUM_OP(5), 
 		STR(6), STR_INDIC(13), GROUP(7), ASSIGN(8), IO(9), HALT(10), TYPE(11), 
-		PROC(12), INVALID(-1), EOF(13);
-
-		public int type;
-		TokenType(int type)
-		{
-			this.type = type;
-		}
-
-		int getVal(){return type;}
-		
+		PROC(12), INVALID(-1), EOF(13), TRUTH(14);		
 	}
 
 	public Lexer(String path)
