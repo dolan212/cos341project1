@@ -13,10 +13,30 @@ public class DFA {
 	{
 		return null;
 	}
+	public boolean inRange(char c, char i, char j)
+	{
+		return (c >= i && c <= j);
+	}
+	public boolean isNum(char c)
+	{
+		return inRange(c, '0', '9');
+	}
+	public boolean isAlph(char c)
+	{
+		return inRange(c, 'a', 'z');
+	}
+	public boolean excl(char c, char i)
+	{
+		if(i == 'a')
+			return inRange(c, 'b', 'z');
+		else if(i == 'z') return inRange(c, 'a', 'y');
+		else if(i >= 'a' && i <= 'z') return (inRange(c, 'a', (char)(i - 1)) || inRange(c, (char)(i + 1), 'z'));
+		else return false;
+	}
 	public TokenType S0() 
 	{
 		char c = input.charAt(index++);
-		if(c == 'c' || c == 'd' || c == 'g' || (c >= 'j' && c <= 'l') || c == 'q' || c == 'r' || c == 'u' || c == 'v' || (c >= 'x' && c <= 'z'))
+		if(c == 'c' || c == 'd' || c == 'g' || inRange(c, 'j', 'l') || c == 'q' || c == 'r' || c == 'u' || c == 'v' || inRange(c, 'x', 'z'))
 			return S3();
 		else if(c == 'a') return S1();
 		else if(c == 'b') return S2();
@@ -43,18 +63,51 @@ public class DFA {
 		return invalid();
 	}
 	public TokenType S1() {
-		if((c >= 'a' && c <= 'c') || (c >= 'e' && c <= 'm') || (c >= 'o' && c <= 'z') || (c >= '0' && c <= '9'))
+		char c = input.charAt(index++); 
+		if(inRange(c, 'a', 'c') || inRange(c, 'e', 'm') || inRange(c, 'o', 'z') || inRange(c, '0', '9'))
 			return S25();
 		else if(c == 'd') return S26();
 		else if(c == 'n') return S27();
 		
 		return TokenType.VAR;
 	}
-	public TokenType S2() {}
-	public TokenType S3() {}
-	public TokenType S4() {}
-	public TokenType S5() {}
-	public TokenType S6() {}
+	public TokenType S2() {
+		char c = input.charAt(index++);
+		if(excl(c, 'o') || inRange(c, '0', '9'))
+			return S25();
+		else if(c == 'o') return S28();
+
+		return TokenType.VAR;
+	}
+	public TokenType S3() {
+		char c = input.charAt(index++);
+		if(isNum(c) || isAlph(c))
+			return S25();
+
+		return TokenType.VAR;
+	}
+	public TokenType S4() {
+		char c = input.charAt(index++);
+		if(inRange(c, 'a', 'k') || inRange(c, 'm', 'p') || inRange(c, 'r', 'z') || isNum(c))
+		       return S25();
+		else if(c == 'l') return S29();
+		else if(c == 'q') return S30();
+
+		return TokenType.VAR;	
+	}
+	public TokenType S5() {
+		char c = input.charAt(index++);
+		if(excl(c, 'o') || isNum(c))
+			return S25();
+		else if(c == 'o') return S31();
+
+		return TokenType.VAR;
+	}
+	public TokenType S6() {
+		char c = input.charAt(index++);
+		if(inRange(c, 'b', 'z') || isNum(c))
+			return S25();
+	}
 	public TokenType S7() {}
 	public TokenType S8() {}
 	public TokenType S9() {}

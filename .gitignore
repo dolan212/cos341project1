@@ -1,2 +1,6 @@
 *.swp
 *.class
+.classpath
+.project
+workbench.xmi
+*.txt
