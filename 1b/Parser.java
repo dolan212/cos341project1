@@ -9,6 +9,8 @@ public class Parser
 
 	String fileString;
 	LinkedList<Token> tokenArray;
+	int currentPos;
+	Token next;
 
 	public static void main(String [] args)
 	{
@@ -23,6 +25,7 @@ public class Parser
 
 	public Parser(String fileName)
 	{
+		currentPos = 0;
 		Scanner sc;
 		try{
 			sc = new Scanner(new File(fileName));			
@@ -37,7 +40,7 @@ public class Parser
 			System.out.println("File: " + fileName + " not found. Exiting");			
 		}
 
-		
+		next = tokenArray.get(0);	
 	}
 	
 	public LinkedList<Token> getTokens(String tokenString)
@@ -66,6 +69,7 @@ public class Parser
 			tempList.add(new Token(Lexer.TokenType.valueOf(singleToken[1]),data));
 		}
 
+		sc.close();
 		return tempList;		
 	}
 
@@ -86,5 +90,26 @@ public class Parser
 			e.printStackTrace();
 		}
 		
+	}
+
+	public void match(Lexer.TokenType type)
+	{
+		next = tokenArray.get(++currentPos);
+		if(next.type != type)
+		{
+			System.out.println("Syntax Error: Unable to match token type " + type.toString() + " at position " + currentPos);
+			System.exit(1);
+		}	
+		next = tokenArray.get(++currentPos);
+	}
+	public void match(String input)
+	{
+		next = tokenArray.get(++currentPos);
+		if(!next.data.equals(input))
+		{
+			System.out.println("Syntax Error: Unable to match token " + input + " at position " + currentPos);
+			System.exit(1);
+		}
+		next = tokenArray.get(++currentPos);
 	}
 }
