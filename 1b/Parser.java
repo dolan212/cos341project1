@@ -3,7 +3,6 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.LinkedList;
 import java.io.PrintWriter;
-import java.lang.Enum;
 public class Parser
 {	
 
@@ -21,6 +20,7 @@ public class Parser
 		}
 
 		Parser p = new Parser(args[0]);
+		p.parseS();
 	}
 
 	public Parser(String fileName)
@@ -48,7 +48,6 @@ public class Parser
 		LinkedList<Token> tempList = new LinkedList<Token>();
 
 		Scanner sc = new Scanner(tokenString);
-		int tokenNum = 1;
 		String temp ="";
 		String [] singleToken;
 
@@ -94,61 +93,44 @@ public class Parser
 
 	public void parseVAR()
 	{
-		if()
-			return;
-		else
-		{
-			//throw error
-		}
+		match(Lexer.TokenType.VAR);
 	}
 
 	public void parseAssign()
 	{
-		if(next.type == Lexer.Token.VAR)
+		parseVAR();
+		match("=");
+
+		if(next.type == Lexer.TokenType.STR)
+		{
+			match(Lexer.TokenType.STR);
+		}
+		else if(next.type == Lexer.TokenType.VAR)
 		{
 			parseVAR();
-			match("=");
-
-			if(next.type == Lexer.TokenType.STR)
-			{
-				//var is string
-			}
-			else if(next.type == Lexer.TokenType.VAR)
-			{
-				//var is var
-				parseVAR();
-			}
-			else if(next.type == Lexer.TokenType.INT || next.type == Lexer.TokenType.NUM_OP)
-				parseNUMEXPR();
-			else
-				parseBOOL();
 		}
+		else if(next.type == Lexer.TokenType.INT || next.type == Lexer.TokenType.NUM_OP)
+			parseNUMEXPR();
 		else
-		{
-			//throw error
-		}
+			parseBOOL();
 	}
 
 	public void parseNUMEXPR()
 	{
 		if(next.type == Lexer.TokenType.VAR)
-		{
 			parseVAR();			
-		}
 		else if(next.type == Lexer.TokenType.INT)
-			parseNUM();
+			match(Lexer.TokenType.INT);
 		else if(next.type == Lexer.TokenType.NUM_OP)
 			parseCALC();//next is ADD,SUB or MULT
-		else
-		{
-			//throw error
-		}
+		
 	}
 
 	public void parseCALC()
 	{
 		if(next.data.equals("add"))//which is next?
 		{
+			match("add");
 			//next is an add operation
 			match("(");
 			parseNUMEXPR();
@@ -158,6 +140,7 @@ public class Parser
 		}
 		else if(next.data.equals("sub"))
 		{
+			match("sub");
 			//next is a sub operation
 			match("(");
 			parseNUMEXPR();
@@ -167,6 +150,7 @@ public class Parser
 		}
 		else if(next.data.equals("mult"))
 		{
+			match("mult");
 			//next is a mult operation
 			match("(");
 			parseNUMEXPR();
@@ -174,45 +158,39 @@ public class Parser
 			parseNUMEXPR();
 			match(")");
 		}
-		else
-		{
-			//throw error
-		}
 	}
 
 	public void parseCOND_BRANCH()
 	{
 		if(next.data.equals("if"))
 		{
+			match("if");
 			match("(");//next+=2
 			parseBOOL();
 			match(")");
-			next=tokenArray.get(--currentPos);//next needs to go back
-			check("then");
+			match("then");
 			match("{");
 			parseCODE();
 			match("}");
 
 			if(next.data.equals("else"))
 			{
+				match("else");
 				match("{");
 				parseCODE();
 				match("}");
 			}
 			
 		}
-		else
-		{
-			//throw error
-		}
 	}
 
-	public parseBOOL()
+	public void parseBOOL()
 	{
 		if(next.type == Lexer.TokenType.BOOL)//operation
 		{
 			if(next.data.equals("eq"))//equate operation
 			{
+				match("eq");
 				match("(");
 				parseVAR();
 				match(",");
@@ -221,11 +199,12 @@ public class Parser
 			}
 			else if(next.data.equals("not"))//not operation
 			{
-				next=tokenArray.get(++currentPos);
+				match("not");
 				parseBOOL();
 			}
 			else if(next.data.equals("and"))//and operation
 			{
+				match("and");
 				match("(");
 				parseBOOL();
 				match(",");
@@ -234,6 +213,7 @@ public class Parser
 			}
 			else//or operation
 			{
+				match("or");
 				match("(");
 				parseBOOL();
 				match(",");
@@ -241,61 +221,47 @@ public class Parser
 				match(")");
 			}
 		}
-		else if(next.data.equals("("))//expression
-		{
-			next=tokenArray.get(++currentPos);
-			parseVAR();
-			next=tokenArray.get(++counterPos);
-
-			if(next.data.equals("<"))//less than expression
-			{
-				next=tokenArray.get(++counterPos);
-				parseVAR();
-				match(")");
-			}
-			else if(next.data.equals(">"))//greater than expression
-			{
-				next=tokenArray.get(++counterPos);
-				parseVAR();
-				match(")");
-			}
-			else
-			{
-				//throw error
-			}
-		}
-		else if(next.data.equals("TRUE"))
-		{
-				//true
-		}
-		else if(next.data.equals("FALSE"));
-		{
-				//false
-		}
 		else if(next.type == Lexer.TokenType.VAR)
 		{
-			//throw errror
+			parseVAR();
+			if(next.data.equals("<"))
+			{
+				match("<");
+				parseVAR();
+			}
+			else if(next.data.equals(">"))
+			{
+				match(">");
+				parseVAR();
+			}
 		}
+		else if(next.type == Lexer.TokenType.TRUTH)
+		{
+			match(Lexer.TokenType.TRUTH);
+		}
+		
 	}
 
 	public void parseCONDLOOP()
 	{
 		if(next.data.equals("while"))//while loop
 		{
+			match("while");
 			match("(");
 			parseBOOL();
-			check(")");
+			match(")");
 			match("{");
 			parseCODE();
 			match("}");			
 		}
 		else if(next.data.equals("for")) //for loop
 		{
+			match("for");
 			//initial var setup
 			match("(");
 			parseVAR();
-			check("=");
-			check("0");
+			match("=");
+			match("0");
 			match(";");
 
 			//condition
@@ -306,24 +272,115 @@ public class Parser
 
 			//increment
 			parseVAR();
-			check("=");	//assignment
-			check("add");	//add expression
+			match("=");	//assignment
+			match("add");	//add expression
 			match("(");
 			parseVAR();	
-			check(",");
-			check("1");	//NUM 1
-			check(")");
-			check(")");//close for
+			match(",");
+			match("1");	//NUM 1
+			match(")");
+			match(")");//close for
 
 			//body
 			match("{");
 			parseCODE();
 			match("}");
 		}
-		else
+	}
+
+	public void parseS()
+	{
+		parsePROG();
+		match(Lexer.TokenType.EOF);
+	}
+
+	public void parsePROG()
+	{
+		parseCODE();
+		if(next.data.equals(";"))
 		{
-			//throw error
+			match(";");
+			parsePROC_DEFS();
 		}
+	}
+
+	public void parsePROC_DEFS()
+	{
+		parsePROC();
+		if(next.type == Lexer.TokenType.PROC)
+			parsePROC_DEFS();
+	}
+
+	public void parsePROC()
+	{
+		match("proc");
+		match(Lexer.TokenType.VAR);
+		match("{");
+		parsePROG();
+		match("}");
+	}
+
+	public void parseCODE()
+	{
+		parseINSTR();
+		if(next.data.equals(";"))
+		{
+			match(";");
+			parseCODE();
+		}
+	}
+
+	public void parseINSTR()
+	{
+		switch(next.type)
+		{
+			case HALT:
+				match(Lexer.TokenType.HALT);
+				break;
+			case TYPE:
+				parseDECL();
+				break;
+			case IO:
+				parseIO();
+				break;
+			case VAR:
+				if(tokenArray.get(currentPos + 1).data.equals("="))
+					parseAssign();
+				else parseVAR();
+				break;
+			case STRUC:
+				if(next.data.equals("if"))
+					parseCOND_BRANCH();
+				else parseCONDLOOP();
+				break;
+			default:
+				break;
+
+		}
+	}
+
+	public void parseIO()
+	{
+		match(Lexer.TokenType.IO);
+		match("(");
+		parseVAR();
+		match(")");
+	}
+
+	public void parseDECL()
+	{
+		parseTYPE();
+		parseVAR();
+		if(next.data.equals(";"))
+		{
+			match(";");
+			parseDECL();
+		}
+	}
+
+	public void parseTYPE()
+	{
+		match(Lexer.TokenType.TYPE);
 	}
 
 	public void check(String input)
@@ -334,7 +391,6 @@ public class Parser
 
 	public void match(Lexer.TokenType type)
 	{
-		next = tokenArray.get(++currentPos);
 		if(next.type != type)
 		{
 			System.out.println("Syntax Error: Unable to match token type " + type.toString() + " at position " + currentPos);
@@ -344,7 +400,6 @@ public class Parser
 	}
 	public void match(String input)
 	{
-		next = tokenArray.get(++currentPos);
 		if(!next.data.equals(input))
 		{
 			System.out.println("Syntax Error: Unable to match token " + input + " at position " + currentPos);
