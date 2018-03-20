@@ -14,9 +14,9 @@ public class Lexer
 	char current = ' ';
 
 	public enum TokenType {
-		VAR(0), INT(1), STRUC(2) ,COMP(3), BOOL(4), NUM_OP(5), 
-		STR(6), STR_INDIC(13), GROUP(7), ASSIGN(8), IO(9), HALT(10), TYPE(11), 
-		PROC(12), INVALID(-1), EOF(13), TRUTH(14);		
+		VAR, INT, STRUC ,COMP, BOOL, NUM_OP, 
+		STR, STR_INDIC, GROUP, ASSIGN, IO, HALT, TYPE, 
+		PROC, INVALID, EOF, TRUTH;		
 	}
 
 	public Lexer(String path)

@@ -34,7 +34,6 @@ public class Parser
 
 		tokenArray = getTokens(fileString);
 
-		printToFile();
 		}catch(FileNotFoundException e)
 		{
 			System.out.println("File: " + fileName + " not found. Exiting");			
@@ -69,6 +68,7 @@ public class Parser
 		}
 
 		sc.close();
+		tempList.add(new Token(Lexer.TokenType.EOF, "$"));
 		return tempList;		
 	}
 
@@ -101,9 +101,11 @@ public class Parser
 		parseVAR();
 		match("=");
 
-		if(next.type == Lexer.TokenType.STR)
+		if(next.type == Lexer.TokenType.STR_INDIC)
 		{
+			match("\"");
 			match(Lexer.TokenType.STR);
+			match("\"");
 		}
 		else if(next.type == Lexer.TokenType.VAR)
 		{
@@ -186,40 +188,40 @@ public class Parser
 
 	public void parseBOOL()
 	{
-		if(next.type == Lexer.TokenType.BOOL)//operation
+		if(next.data.equals("eq"))//operation
 		{
-			if(next.data.equals("eq"))//equate operation
-			{
-				match("eq");
-				match("(");
-				parseVAR();
-				match(",");
-				parseVAR();
-				match(")");
-			}
-			else if(next.data.equals("not"))//not operation
-			{
-				match("not");
-				parseBOOL();
-			}
-			else if(next.data.equals("and"))//and operation
-			{
-				match("and");
-				match("(");
-				parseBOOL();
-				match(",");
-				parseBOOL();
-				match(")");
-			}
-			else//or operation
-			{
-				match("or");
-				match("(");
-				parseBOOL();
-				match(",");
-				parseBOOL();
-				match(")");
-			}
+			
+			System.out.println("eq");
+			match("eq");
+			match("(");
+			parseVAR();
+			match(",");
+			parseVAR();
+			match(")");
+			
+		}
+		else if(next.data.equals("not"))//not operation
+		{
+			match("not");
+			parseBOOL();
+		}
+		else if(next.data.equals("and"))//and operation
+		{
+			match("and");
+			match("(");
+			parseBOOL();
+			match(",");
+			parseBOOL();
+			match(")");
+		}
+		else if(next.data.equals("or"))//or operation
+		{
+			match("or");
+			match("(");
+			parseBOOL();
+			match(",");
+			parseBOOL();
+			match(")");
 		}
 		else if(next.type == Lexer.TokenType.VAR)
 		{
@@ -394,6 +396,7 @@ public class Parser
 		if(next.type != type)
 		{
 			System.out.println("Syntax Error: Unable to match token type " + type.toString() + " at position " + currentPos);
+			System.out.println("Found " + next.type.toString() + " instead");
 			System.exit(1);
 		}	
 		next = tokenArray.get(++currentPos);
@@ -403,6 +406,7 @@ public class Parser
 		if(!next.data.equals(input))
 		{
 			System.out.println("Syntax Error: Unable to match token " + input + " at position " + currentPos);
+			System.out.println("Found " + next.data + " instead");
 			System.exit(1);
 		}
 		next = tokenArray.get(++currentPos);
