@@ -11,6 +11,7 @@ public class Parser
 	int currentPos;
 	Token next;
 	ParseNode currentNode;
+	String tree;
 
 	public static void main(String [] args)
 	{
@@ -21,7 +22,6 @@ public class Parser
 		}
 
 		Parser p = new Parser(args[0]);
-		p.parseS();
 	}
 
 	public Parser(String fileName)
@@ -40,7 +40,13 @@ public class Parser
 			System.out.println("File: " + fileName + " not found. Exiting");			
 		}
 
-		next = tokenArray.get(0);	
+		next = tokenArray.get(0);
+
+		parseS();
+
+		//print parse tree to file
+		//printToFile();
+		System.out.println(tree);
 	}
 	
 	public LinkedList<Token> getTokens(String tokenString)
@@ -57,8 +63,8 @@ public class Parser
 			temp = sc.nextLine();
 			singleToken = temp.split("\\|");
 
-			for(int i = 0; i < singleToken.length;i++)
-				System.out.println(singleToken[i]);
+			// for(int i = 0; i < singleToken.length;i++)
+			// 	System.out.println(singleToken[i]);
 
 			String data = "";
 			if(singleToken.length==3)
@@ -73,13 +79,43 @@ public class Parser
 		return tempList;		
 	}
 
+	public void printNode()
+	{
+		if(currentNode.parent!=null)
+			tree+=currentNode.toString()+currentNode.parent.num+"\n";
+		else
+			tree+=currentNode.toString()+"\n";
+	}
+
 	public void printToFile()
 	{
 		try{
 			PrintWriter writer = new PrintWriter("temp.txt");
 			String output= "";
-			for(int i = 0; i < tokenArray.size(); i ++)
-				output+=tokenArray.get(i).toString() + "\n";
+
+			ParseNode temp = currentNode;
+			boolean cont = true;
+
+			// while(temp.children.size()>1)
+			// 		temp=temp.get(0);
+			
+			while(temp!=null)
+			{	
+				if(!temp.visited)
+					output += temp.toString();
+
+				cont = true;
+
+				for(int i = 0; i < temp.children.size() && cont;i++)
+				{
+					if(!temp.children.get(i).visited)
+					{						
+						temp.children.get(i).visited=true;
+						temp = temp.children.get(i);
+						cont = false;
+					}
+				}
+			}
 
 			writer.write(output);
 
@@ -93,26 +129,39 @@ public class Parser
 	}
 
 	public void parseVAR()
-	{
+	{	
 		//@todo check what type of variable var is
 		if(next.type == Lexer.TokenType.STR)
 		{
 			//var is string
+			currentNode = currentNode.addChild(new ParseNode(NodeType.VAR,next.data));
 			match(Lexer.TokenType.STR);
 		}
 		else if (next.type == Lexer.TokenType.VAR)
+		{
+			currentNode = currentNode.addChild(new ParseNode(NodeType.VAR,next.data));
 			match(Lexer.TokenType.VAR);
+		}
 		else if(next.type == Lexer.TokenType.INT)
+		{
+			currentNode = currentNode.addChild(new ParseNode(NodeType.VAR,next.data));
 			parseNUMEXPR();
+		}
 		else
 		{
-			//error
+			System.out.println("Error: Cannot parse VAR with "+next.data);
+			System.exit(0);
 		}
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseAssign()
 	{
 		System.out.println("Parsing ASSIGN");
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.ASSIGN,"="));
 		parseVAR();
 		match("=");
 
@@ -120,6 +169,10 @@ public class Parser
 		{
 			//match("\"");
 			match(Lexer.TokenType.STR);
+
+			currentNode = currentNode.addChild(new ParseNode(NodeType.STR,tokenArray.get(currentPos-1).data));
+			printNode();
+			currentNode = currentNode.parent;
 			//match("\"");
 		}
 		else if(next.type == Lexer.TokenType.VAR)
@@ -130,11 +183,17 @@ public class Parser
 			parseNUMEXPR();
 		else
 			parseBOOL();
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseNUMEXPR()
 	{
 		System.out.println("Passing NUMEXPR with " +next.data);
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.NUMEXPR));
+
 		if(next.type == Lexer.TokenType.VAR)
 			parseVAR();			
 		else if(next.type == Lexer.TokenType.INT)
@@ -142,13 +201,19 @@ public class Parser
 		else if(next.type == Lexer.TokenType.NUM_OP)
 			parseCALC();//next is ADD,SUB or MULT
 		
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseCALC()
 	{
 		System.out.println("Parsing CALC with "+ next.data);
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.CALC));
+
 		if(next.data.equals("add"))//which is next?
 		{
+			currentNode.data="+";
 			match("add");
 			//next is an add operation
 			match("(");
@@ -159,6 +224,7 @@ public class Parser
 		}
 		else if(next.data.equals("sub"))
 		{
+			currentNode.data="-";
 			match("sub");
 			//next is a sub operation
 			match("(");
@@ -169,6 +235,7 @@ public class Parser
 		}
 		else if(next.data.equals("mult"))
 		{
+			currentNode.data="*";
 			match("mult");
 			//next is a mult operation
 			match("(");
@@ -177,13 +244,20 @@ public class Parser
 			parseNUMEXPR();
 			match(")");
 		}
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseCOND_BRANCH()
 	{
 		System.out.println("Parsing COND_BRANCH with "+ next.data);
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.COND_BRANCH));
+
 		if(next.data.equals("if"))
 		{
+			currentNode.data = "if";
 			match("if");
 			match("(");
 			parseBOOL();
@@ -195,23 +269,30 @@ public class Parser
 
 			if(next.data.equals("else"))
 			{
+				currentNode = currentNode.addChild(new ParseNode(NodeType.COND_BRANCH,"else"));
 				match("else");
 				match("{");
 				parseCODE();
 				match("}");
+				currentNode = currentNode.parent;
 			}
 			
 		}
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseBOOL()
 	{
 		System.out.println("Parsing BOOl with "+ next.data);
 
+		currentNode = currentNode.addChild(new ParseNode(NodeType.BOOL));
+
 		if(next.data.equals("eq"))//operation
-		{
-			
-			System.out.println("eq");
+		{			
+			currentNode.data = "eq";
+
 			match("eq");
 			match("(");
 			parseVAR();
@@ -222,11 +303,13 @@ public class Parser
 		}
 		else if(next.data.equals("not"))//not operation
 		{
+			currentNode.data = "not";
 			match("not");
 			parseBOOL();
 		}
 		else if(next.data.equals("and"))//and operation
 		{
+			currentNode.data = "and";
 			match("and");
 			match("(");
 			parseBOOL();
@@ -236,6 +319,7 @@ public class Parser
 		}
 		else if(next.data.equals("or"))//or operation
 		{
+			currentNode.data = "or";
 			match("or");
 			match("(");
 			parseBOOL();
@@ -243,17 +327,19 @@ public class Parser
 			parseBOOL();
 			match(")");
 		}
-		else if(next.data.equals("(")) //bool in brackets
+		else if(next.data.equals("(")) //bool in brackets - expresion
 		{
 			match("(");
 			parseVAR();
 			if(next.data.equals("<"))
 			{
+				currentNode.data = "<";
 				match("<");
 				parseVAR();
 			}
 			else if(next.data.equals(">"))
 			{
+				currentNode.data = ">";
 				match(">");
 				parseVAR();
 			}
@@ -265,27 +351,37 @@ public class Parser
 			parseVAR();
 			if(next.data.equals("<"))
 			{
+				currentNode.data = "<";
 				match("<");
 				parseVAR();
 			}
 			else if(next.data.equals(">"))
 			{
+				currentNode.data = ">";
 				match(">");
 				parseVAR();
 			}
 		}
 		else if(next.type == Lexer.TokenType.TRUTH)
 		{
+			currentNode.data = next.data;
 			match(Lexer.TokenType.TRUTH);
 		}
+
+		printNode();
+		currentNode = currentNode.parent;
 		
 	}
 
 	public void parseCONDLOOP()
 	{
 		System.out.println("Parsing CONDLOOP wiht "+ next.data);
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.CONDLOOP));
+
 		if(next.data.equals("while"))//while loop
 		{
+			currentNode.data = "while";
 			match("while");
 			match("(");
 			parseBOOL();
@@ -296,6 +392,7 @@ public class Parser
 		}
 		else if(next.data.equals("for")) //for loop
 		{
+			currentNode.data = "for";
 			match("for");
 			//initial var setup
 			match("(");
@@ -326,51 +423,72 @@ public class Parser
 			parseCODE();
 			match("}");
 		}
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseS()
 	{
 		System.out.println("Starting parseS()");
+		currentNode = new ParseNode(NodeType.START,"root");
 
 		parsePROG();
 		match(Lexer.TokenType.EOF);
+		printNode();
 	}
 
 	public void parsePROG()
 	{	
 		System.out.println("Parsing PROG");
-		currentNode = new ParseNode(Lexer.TokenType.PROG);
+		currentNode = currentNode.addChild(new ParseNode(NodeType.PROG,""));
+
 		parseCODE();
 		if(next.data.equals(";"))
 		{
 			match(";");
 			parsePROC_DEFS();
 		}
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parsePROC_DEFS()
 	{
 		System.out.println("Parsing PROC_DEFS");
 
+		currentNode = currentNode.addChild(new ParseNode(NodeType.PROC_DEFS));
+
 		parsePROC();
 		if(next.type == Lexer.TokenType.PROC)
 			parsePROC_DEFS();
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parsePROC()
 	{
 		System.out.println("Parsing PROC");
 
+		currentNode = currentNode.addChild(new ParseNode(NodeType.PROC));
+
 		match("proc");
 		match(Lexer.TokenType.VAR);
 		match("{");
 		parsePROG();
 		match("}");
+
+		printNode();
+		currentNode = currentNode.parent;	
 	}
 
 	public void parseCODE()
 	{
 		System.out.println("Parsing CODE with "+next.data);
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.CODE));
 
 		if(next.type == Lexer.TokenType.PROC)
 			parsePROC_DEFS();
@@ -386,12 +504,15 @@ public class Parser
 			}
 		}
 
-		
+		printNode();
+		currentNode = currentNode.parent;		
 	}
 
 	public void parseINSTR()
 	{
 		System.out.println("Parsing INSTR with "+ next.type);
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.INSTR));
 
 		switch(next.type)
 		{
@@ -407,7 +528,13 @@ public class Parser
 			case VAR:
 				if(tokenArray.get(currentPos + 1).data.equals("="))
 					parseAssign();
-				else parseVAR();
+				else if(next.data.equals("num") || next.data.equals("bool") || next.data.equals("string"))
+					{
+						parseTYPE();
+					}
+					else
+						parseVAR();
+					
 				break;
 			case STRUC:
 				if(next.data.equals("if"))
@@ -419,22 +546,37 @@ public class Parser
 				System.exit(0);
 				break;
 
-		}
+		}	
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseIO()
 	{
 		System.out.println("Parsing IO");
 
+		currentNode = currentNode.addChild(new ParseNode(NodeType.IO));
+
+		if(next.data.equals("input"))
+			currentNode.data = "input";
+		else
+			currentNode.data = "output";
+
 		match(Lexer.TokenType.IO);
 		match("(");
 		parseVAR();
 		match(")");
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseDECL()
 	{
 		System.out.println("Parsing DECL");
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.DECL));
 
 		parseTYPE();
 		parseNAME();
@@ -445,13 +587,18 @@ public class Parser
 		}
 		else
 		{
-			//new variable of type parseType and name parseName
+			//error
 		}
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void parseNAME()
 	{
 		System.out.println("Parsing NAME");
+
+		currentNode = currentNode.addChild(new ParseNode(NodeType.NAME,next.data));
 
 		if(next.type == Lexer.TokenType.VAR)
 		{
@@ -459,6 +606,9 @@ public class Parser
 			//the diference is that a name doesnt hold a value
 			//while a var holds a value
 		}
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 
@@ -466,7 +616,12 @@ public class Parser
 	{
 		System.out.println("Parsing TYPE");
 
+		currentNode = currentNode.addChild(new ParseNode(NodeType.TYPE,next.data));
+
 		match(Lexer.TokenType.TYPE);
+
+		printNode();
+		currentNode = currentNode.parent;
 	}
 
 	public void match(Lexer.TokenType type)
