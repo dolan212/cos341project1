@@ -10,6 +10,7 @@ public class Parser
 	LinkedList<Token> tokenArray;
 	int currentPos;
 	Token next;
+	ParseNode currentNode;
 
 	public static void main(String [] args)
 	{
@@ -93,19 +94,33 @@ public class Parser
 
 	public void parseVAR()
 	{
-		match(Lexer.TokenType.VAR);
+		//@todo check what type of variable var is
+		if(next.type == Lexer.TokenType.STR)
+		{
+			//var is string
+			match(Lexer.TokenType.STR);
+		}
+		else if (next.type == Lexer.TokenType.VAR)
+			match(Lexer.TokenType.VAR);
+		else if(next.type == Lexer.TokenType.INT)
+			parseNUMEXPR();
+		else
+		{
+			//error
+		}
 	}
 
 	public void parseAssign()
 	{
+		System.out.println("Parsing ASSIGN");
 		parseVAR();
 		match("=");
 
-		if(next.type == Lexer.TokenType.STR_INDIC)
+		if(next.type == Lexer.TokenType.STR)
 		{
-			match("\"");
+			//match("\"");
 			match(Lexer.TokenType.STR);
-			match("\"");
+			//match("\"");
 		}
 		else if(next.type == Lexer.TokenType.VAR)
 		{
@@ -119,6 +134,7 @@ public class Parser
 
 	public void parseNUMEXPR()
 	{
+		System.out.println("Passing NUMEXPR with " +next.data);
 		if(next.type == Lexer.TokenType.VAR)
 			parseVAR();			
 		else if(next.type == Lexer.TokenType.INT)
@@ -130,6 +146,7 @@ public class Parser
 
 	public void parseCALC()
 	{
+		System.out.println("Parsing CALC with "+ next.data);
 		if(next.data.equals("add"))//which is next?
 		{
 			match("add");
@@ -164,10 +181,11 @@ public class Parser
 
 	public void parseCOND_BRANCH()
 	{
+		System.out.println("Parsing COND_BRANCH with "+ next.data);
 		if(next.data.equals("if"))
 		{
 			match("if");
-			match("(");//next+=2
+			match("(");
 			parseBOOL();
 			match(")");
 			match("then");
@@ -188,6 +206,8 @@ public class Parser
 
 	public void parseBOOL()
 	{
+		System.out.println("Parsing BOOl with "+ next.data);
+
 		if(next.data.equals("eq"))//operation
 		{
 			
@@ -223,6 +243,23 @@ public class Parser
 			parseBOOL();
 			match(")");
 		}
+		else if(next.data.equals("(")) //bool in brackets
+		{
+			match("(");
+			parseVAR();
+			if(next.data.equals("<"))
+			{
+				match("<");
+				parseVAR();
+			}
+			else if(next.data.equals(">"))
+			{
+				match(">");
+				parseVAR();
+			}
+			match(")");
+
+		}
 		else if(next.type == Lexer.TokenType.VAR)
 		{
 			parseVAR();
@@ -246,6 +283,7 @@ public class Parser
 
 	public void parseCONDLOOP()
 	{
+		System.out.println("Parsing CONDLOOP wiht "+ next.data);
 		if(next.data.equals("while"))//while loop
 		{
 			match("while");
@@ -292,12 +330,16 @@ public class Parser
 
 	public void parseS()
 	{
+		System.out.println("Starting parseS()");
+
 		parsePROG();
 		match(Lexer.TokenType.EOF);
 	}
 
 	public void parsePROG()
-	{
+	{	
+		System.out.println("Parsing PROG");
+		currentNode = new ParseNode(Lexer.TokenType.PROG);
 		parseCODE();
 		if(next.data.equals(";"))
 		{
@@ -308,6 +350,8 @@ public class Parser
 
 	public void parsePROC_DEFS()
 	{
+		System.out.println("Parsing PROC_DEFS");
+
 		parsePROC();
 		if(next.type == Lexer.TokenType.PROC)
 			parsePROC_DEFS();
@@ -315,6 +359,8 @@ public class Parser
 
 	public void parsePROC()
 	{
+		System.out.println("Parsing PROC");
+
 		match("proc");
 		match(Lexer.TokenType.VAR);
 		match("{");
@@ -324,16 +370,28 @@ public class Parser
 
 	public void parseCODE()
 	{
-		parseINSTR();
-		if(next.data.equals(";"))
+		System.out.println("Parsing CODE with "+next.data);
+
+		if(next.type == Lexer.TokenType.PROC)
+			parsePROC_DEFS();
+		else
 		{
-			match(";");
-			parseCODE();
+			parseINSTR();
+			
+			if(next.data.equals(";"))
+			{
+				match(";");
+				parseCODE();
+			}
 		}
+
+		
 	}
 
 	public void parseINSTR()
 	{
+		System.out.println("Parsing INSTR with "+ next.type);
+
 		switch(next.type)
 		{
 			case HALT:
@@ -356,6 +414,8 @@ public class Parser
 				else parseCONDLOOP();
 				break;
 			default:
+				System.out.println("Error: Cannot parse INSTR with "+ next.data);
+				System.exit(0);
 				break;
 
 		}
@@ -363,6 +423,8 @@ public class Parser
 
 	public void parseIO()
 	{
+		System.out.println("Parsing IO");
+
 		match(Lexer.TokenType.IO);
 		match("(");
 		parseVAR();
@@ -371,28 +433,44 @@ public class Parser
 
 	public void parseDECL()
 	{
+		System.out.println("Parsing DECL");
+
 		parseTYPE();
-		parseVAR();
+		parseNAME();
 		if(next.data.equals(";"))
 		{
 			match(";");
 			parseDECL();
 		}
+		else
+		{
+			//new variable of type parseType and name parseName
+		}
 	}
+
+	public void parseNAME()
+	{
+		System.out.println("Parsing NAME");
+
+		if(next.type == Lexer.TokenType.VAR)
+		{
+			//we have an explicit name - aka function name or what not
+			//the diference is that a name doesnt hold a value
+			//while a var holds a value
+		}
+	}
+
 
 	public void parseTYPE()
 	{
-		match(Lexer.TokenType.TYPE);
-	}
+		System.out.println("Parsing TYPE");
 
-	public void check(String input)
-	{
-		match(input);
-		next = tokenArray.get(--currentPos);
+		match(Lexer.TokenType.TYPE);
 	}
 
 	public void match(Lexer.TokenType type)
 	{
+		System.out.println("Matching "+ type);
 		if(next.type != type)
 		{
 			System.out.println("Syntax Error: Unable to match token type " + type.toString() + " at position " + currentPos);
@@ -403,6 +481,7 @@ public class Parser
 	}
 	public void match(String input)
 	{
+		System.out.println("Matching "+input);
 		if(!next.data.equals(input))
 		{
 			System.out.println("Syntax Error: Unable to match token " + input + " at position " + currentPos);
