@@ -1,19 +1,39 @@
 import java.util.LinkedList;
 public class ParseNode
 {
-	Lexer.TokenType type;
-	LinkedList<ParseNode> children;
 
-	public ParseNode(Lexer.TokenType type)
+	NodeType type;
+	LinkedList<ParseNode> children;
+	String data;
+	ParseNode parent = null;
+	static int id;
+	int num;
+	boolean visited = false;
+
+	public ParseNode(NodeType type)
 	{
 		this.type = type;
 		children = new LinkedList<ParseNode>();
+		num = id++;
+	}
+
+	public ParseNode(NodeType type, String data)
+	{
+		this(type);
+		this.data = data;
 	}	
 
 	//adds child and returns it
 	public ParseNode addChild(ParseNode node)
 	{
+		node.parent=this;
 		children.add(node);
 		return node;
+	}
+
+	public String toString()
+	{
+		String out = "P"+num+"|"+type+"|"+data+"|";
+		return out;
 	}
 }

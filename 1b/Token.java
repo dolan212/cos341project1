@@ -10,7 +10,7 @@ public class Token
 		this.data = data;
 		myNum = num++;
 		
-		System.out.println("Token " + num + " - Type: "+ type + " - Data: " + data);
+		//System.out.println("Token " + num + " - Type: "+ type + " - Data: " + data);
 	}
 
 	public String toString()
