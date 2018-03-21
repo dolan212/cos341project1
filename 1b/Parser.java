@@ -377,11 +377,12 @@ public class Parser
 		else
 		{
 			parseINSTR();
-			
+
 			if(next.data.equals(";"))
 			{
 				match(";");
-				parseCODE();
+				if(!next.data.equals("}"))
+					parseCODE();
 			}
 		}
 
