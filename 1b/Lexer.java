@@ -13,10 +13,15 @@ public class Lexer
 	LinkedList<Token> tokenList;
 	char current = ' ';
 
+	public static void main(String [] args)
+	{
+		Lexer l = new Lexer(args[0]);
+	}
+
 	public enum TokenType {
 		VAR, INT, STRUC ,COMP, BOOL, NUM_OP, 
 		STR, STR_INDIC, GROUP, ASSIGN, IO, HALT, TYPE, 
-		PROC, INVALID, EOF, TRUTH;		
+		PROC, INVALID, EOF, TRUTH, PROG;	
 	}
 
 	public Lexer(String path)
@@ -31,7 +36,15 @@ public class Lexer
 
 		tokenList = new LinkedList<Token>();
 
-		input = sc.useDelimiter("\\Z").next(); //scan entire file
+		sc.useDelimiter("\\z");
+
+		if(!sc.hasNext())
+		{
+			System.out.println("Empty File");
+			System.exit(0);
+		}
+
+		input = sc.next();
 
 		srcArray = input.toCharArray();
 		System.out.println("Array length: "+ srcArray.length);
@@ -74,7 +87,7 @@ public class Lexer
 				// System.out.println("Processing Letter");
 				processLetter();
 			}
-			else if(current == ' ' || current == '\n' || current == 13)
+			else if(current == ' ' || current == '\n' || current == 13 || Character.isWhitespace(current))
 			{
 				//current is a seperator symbol
 				// System.out.println("Skipping space or endline");
@@ -95,9 +108,9 @@ public class Lexer
 					case '\"':
 						//String symbol
 						//add symbol to linked list
-						tokenList.add(new Token(TokenType.STR_INDIC,"\""));
+						//tokenList.add(new Token(TokenType.STR_INDIC,"\""));
 						parseString();
-						tokenList.add(new Token(TokenType.STR_INDIC,"\""));
+						//tokenList.add(new Token(TokenType.STR_INDIC,"\""));
 						currentPosition--;
 						break;
 					case '<':
