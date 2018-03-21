@@ -33,7 +33,9 @@ public class ParseNode
 
 	public String toString()
 	{
-		String out = "P"+num+"|"+type+"|"+data+"|";
+		String out = num+"|"+type+"|"+data;
+		for(ParseNode n : children)
+			out += "|" + n.num;
 		return out;
 	}
 }

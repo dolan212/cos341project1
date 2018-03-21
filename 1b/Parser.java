@@ -15,7 +15,7 @@ public class Parser
 
 	public static void main(String [] args)
 	{
-		if(args[0]==null)
+		if(args.length == 0)
 		{
 			System.out.println("No File Specified");
 			System.exit(0);
@@ -47,6 +47,7 @@ public class Parser
 		//print parse tree to file
 		//printToFile();
 		System.out.println(tree);
+		printToFile();
 	}
 	
 	public LinkedList<Token> getTokens(String tokenString)
@@ -98,22 +99,15 @@ public class Parser
 
 			// while(temp.children.size()>1)
 			// 		temp=temp.get(0);
-			
-			while(temp!=null)
-			{	
-				if(!temp.visited)
-					output += temp.toString();
-
-				cont = true;
-
-				for(int i = 0; i < temp.children.size() && cont;i++)
+			LinkedList<ParseNode> queue = new LinkedList<ParseNode>();
+			queue.push(temp);
+			while(!queue.isEmpty())
+			{
+				temp = queue.pop();
+				output += temp.toString() + "\n";
+				for(ParseNode n : temp.children)
 				{
-					if(!temp.children.get(i).visited)
-					{						
-						temp.children.get(i).visited=true;
-						temp = temp.children.get(i);
-						cont = false;
-					}
+					queue.push(n);
 				}
 			}
 
