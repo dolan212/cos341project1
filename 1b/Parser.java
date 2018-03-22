@@ -469,6 +469,7 @@ public class Parser
 		currentNode = currentNode.addChild(new ParseNode(NodeType.PROC));
 
 		match("proc");
+		currentNode.data = next.data;
 		match(Lexer.TokenType.VAR);
 		match("{");
 		parsePROG();
