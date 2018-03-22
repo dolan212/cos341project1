@@ -1,4 +1,6 @@
 input(x);
+num n;
+string s;
 n = x;
 r = "unknown";
 s = "even";

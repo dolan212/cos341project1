@@ -36,7 +36,7 @@ public class Pruner
 				TempToken tok = new TempToken(temp[0], NodeType.valueOf(temp[1]), temp[2]);
 				for(int i = 3; i < temp.length; i++)
 				{
-					tok.childrenIds.push(temp[i]);
+					tok.childrenIds.add(temp[i]);
 				}
 				tokenList.add(tok);
 			}
@@ -62,7 +62,7 @@ public class Pruner
 				{
 					if(s.equals(n.id))
 					{
-						t.children.push(n);
+						t.children.add(n);
 						n.parent = t;
 						break;
 					}
@@ -84,6 +84,13 @@ public class Pruner
 	void prune(TempToken n)
 	{
 		LinkedList<TempToken> toRemove = new LinkedList<TempToken>();
+		LinkedList<TempToken> toFlatten = new LinkedList<TempToken>();
+		if(n.children.size() == 1 && isTerminal(n.children.get(0)))
+		{
+			n.data = n.children.get(0).data;
+			n.children.remove(0);
+			return;
+		}
 		for(TempToken t : n.children)
 		{
 			if(t.children.size() == 1 && !isTerminal(t.children.get(0)))
@@ -91,11 +98,16 @@ public class Pruner
 				toRemove.add(t);
 				System.out.println("Removing node " + t.id + " with type " + t.type);
 			}
+			else if(n.type == NodeType.CODE && t.type == NodeType.CODE)
+			{
+				prune(t);
+				toRemove.add(t);
+			}
 			
 			else if(isTerminal(t))
 			{
 				if(t.data.equals(";") || t.data.equals("{") || t.data.equals("}") || t.data.equals("(") || t.data.equals(")")
-						|| t.data.equals("else") || t.data.equals("then") || t.data.equals("else") || t.data.equals("if")
+						|| t.data.equals("else") || t.data.equals("else") || t.data.equals("if")
 						|| t.data.equals("while") || t.data.equals("for") || t.data.equals("not") || t.data.equals("and")
 						|| t.data.equals("or") || t.data.equals("add") || t.data.equals("sub") || t.data.equals("mult")
 						|| t.data.equals("<") || t.data.equals(">") || t.data.equals("eq") || t.data.equals(",")
@@ -112,11 +124,11 @@ public class Pruner
 			n.children.remove(t);
 			for(TempToken m : t.children)
 			{
-				n.children.push(m);
+				n.children.add(m);
 				m.parent = n;
 			}
 		}
-		
+
 		for(TempToken t : n.children)
 			prune(t);
 	}
@@ -126,14 +138,14 @@ public class Pruner
 		try{
 			PrintWriter writer = new PrintWriter(filename);
 			LinkedList<TempToken> queue = new LinkedList<TempToken>();
-			queue.push(head);
+			queue.add(head);
 
 			while(!queue.isEmpty())
 			{
-				TempToken X = queue.pop();
+				TempToken X = queue.remove();
 				writer.write(X.toString() + "\n");
 				for(TempToken t : X.children)
-					queue.push(t);
+					queue.add(t);
 			}
 
 			writer.close();
@@ -143,6 +155,17 @@ public class Pruner
 			System.out.println("Error " + filename + " was not found");
 			System.exit(1);
 		}
+		printTreeDFS(head, 0);
+	}
+
+	void printTreeDFS(TempToken n, int depth)
+	{
+		String out = "";
+		for(int i = 0; i < depth; i++) out += "  ";
+		out += n.type + "|" + n.data;
+		System.out.println(out);
+		for(TempToken t : n.children)
+			printTreeDFS(t, depth+1);
 	}
 
 	public class TempToken

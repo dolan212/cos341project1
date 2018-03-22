@@ -100,14 +100,14 @@ public class Parser
 			// while(temp.children.size()>1)
 			// 		temp=temp.get(0);
 			LinkedList<ParseNode> queue = new LinkedList<ParseNode>();
-			queue.push(temp);
+			queue.add(temp);
 			while(!queue.isEmpty())
 			{
-				temp = queue.pop();
+				temp = queue.remove();
 				output += temp.toString() + "\n";
 				for(ParseNode n : temp.children)
 				{
-					queue.push(n);
+					queue.add(n);
 				}
 			}
 
@@ -129,6 +129,7 @@ public class Parser
 		if(next.type == Lexer.TokenType.STR)
 		{
 			//var is string
+			currentNode.type = NodeType.STR;
 			match(Lexer.TokenType.STR);
 		}
 		else if (next.type == Lexer.TokenType.VAR)
@@ -157,15 +158,7 @@ public class Parser
 		parseVAR();
 		match("=");
 
-		if(next.type == Lexer.TokenType.STR)
-		{
-			//match("\"");
-			match(Lexer.TokenType.STR);
-
-			printNode();
-			//match("\"");
-		}
-		else if(next.type == Lexer.TokenType.VAR)
+		if(next.type == Lexer.TokenType.STR || next.type == Lexer.TokenType.VAR)
 		{
 			parseVAR();
 		}
@@ -516,13 +509,7 @@ public class Parser
 			case VAR:
 				if(tokenArray.get(currentPos + 1).data.equals("="))
 					parseAssign();
-				else if(next.data.equals("num") || next.data.equals("bool") || next.data.equals("string"))
-					{
-						parseTYPE();
-					}
-					else
-						parseVAR();
-					
+				else parseNAME();
 				break;
 			case STRUC:
 				if(next.data.equals("if"))
@@ -567,16 +554,7 @@ public class Parser
 		currentNode = currentNode.addChild(new ParseNode(NodeType.DECL));
 
 		parseTYPE();
-		parseNAME();
-		if(next.data.equals(";"))
-		{
-			match(";");
-			parseDECL();
-		}
-		else
-		{
-			//error
-		}
+		parseVAR();
 
 		printNode();
 		currentNode = currentNode.parent;
@@ -588,12 +566,7 @@ public class Parser
 
 		currentNode = currentNode.addChild(new ParseNode(NodeType.NAME));
 
-		if(next.type == Lexer.TokenType.VAR)
-		{
-			//we have an explicit name - aka function name or what not
-			//the diference is that a name doesnt hold a value
-			//while a var holds a value
-		}
+		match(Lexer.TokenType.VAR);
 
 		printNode();
 		currentNode = currentNode.parent;
