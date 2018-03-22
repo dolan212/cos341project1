@@ -124,21 +124,19 @@ public class Parser
 
 	public void parseVAR()
 	{	
+		currentNode = currentNode.addChild(new ParseNode(NodeType.VAR));
 		//@todo check what type of variable var is
 		if(next.type == Lexer.TokenType.STR)
 		{
 			//var is string
-			currentNode = currentNode.addChild(new ParseNode(NodeType.VAR,next.data));
 			match(Lexer.TokenType.STR);
 		}
 		else if (next.type == Lexer.TokenType.VAR)
 		{
-			currentNode = currentNode.addChild(new ParseNode(NodeType.VAR,next.data));
 			match(Lexer.TokenType.VAR);
 		}
 		else if(next.type == Lexer.TokenType.INT)
 		{
-			currentNode = currentNode.addChild(new ParseNode(NodeType.VAR,next.data));
 			parseNUMEXPR();
 		}
 		else
@@ -155,7 +153,7 @@ public class Parser
 	{
 		System.out.println("Parsing ASSIGN");
 
-		currentNode = currentNode.addChild(new ParseNode(NodeType.ASSIGN,"="));
+		currentNode = currentNode.addChild(new ParseNode(NodeType.ASSIGN));
 		parseVAR();
 		match("=");
 
@@ -164,9 +162,7 @@ public class Parser
 			//match("\"");
 			match(Lexer.TokenType.STR);
 
-			currentNode = currentNode.addChild(new ParseNode(NodeType.STR,tokenArray.get(currentPos-1).data));
 			printNode();
-			currentNode = currentNode.parent;
 			//match("\"");
 		}
 		else if(next.type == Lexer.TokenType.VAR)
@@ -263,12 +259,10 @@ public class Parser
 
 			if(next.data.equals("else"))
 			{
-				currentNode = currentNode.addChild(new ParseNode(NodeType.COND_BRANCH,"else"));
 				match("else");
 				match("{");
 				parseCODE();
 				match("}");
-				currentNode = currentNode.parent;
 			}
 			
 		}
@@ -279,7 +273,7 @@ public class Parser
 
 	public void parseBOOL()
 	{
-		System.out.println("Parsing BOOl with "+ next.data);
+		System.out.println("Parsing BOOL with "+ next.data);
 
 		currentNode = currentNode.addChild(new ParseNode(NodeType.BOOL));
 
@@ -358,7 +352,6 @@ public class Parser
 		}
 		else if(next.type == Lexer.TokenType.TRUTH)
 		{
-			currentNode.data = next.data;
 			match(Lexer.TokenType.TRUTH);
 		}
 
@@ -435,7 +428,7 @@ public class Parser
 	public void parsePROG()
 	{	
 		System.out.println("Parsing PROG");
-		currentNode = currentNode.addChild(new ParseNode(NodeType.PROG,""));
+		currentNode = currentNode.addChild(new ParseNode(NodeType.PROG));
 
 		parseCODE();
 		if(next.data.equals(";"))
@@ -476,7 +469,7 @@ public class Parser
 		match("}");
 
 		printNode();
-		currentNode = currentNode.parent;	
+		currentNode = currentNode.parent;
 	}
 
 	public void parseCODE()
@@ -485,20 +478,20 @@ public class Parser
 
 		currentNode = currentNode.addChild(new ParseNode(NodeType.CODE));
 
-		if(next.type == Lexer.TokenType.PROC)
-			parsePROC_DEFS();
-		else
+		
 		{
 			parseINSTR();
 
 			if(next.data.equals(";"))
 			{
-				match(";");
-				if(!next.data.equals("}"))
-					parseCODE();
+				if(tokenArray.get(currentPos+1).type != Lexer.TokenType.PROC)
+				{
+					match(";");
+					if(!next.data.equals("}"))
+						parseCODE();
+				}
 			}
 		}
-
 		printNode();
 		currentNode = currentNode.parent;		
 	}
@@ -593,7 +586,7 @@ public class Parser
 	{
 		System.out.println("Parsing NAME");
 
-		currentNode = currentNode.addChild(new ParseNode(NodeType.NAME,next.data));
+		currentNode = currentNode.addChild(new ParseNode(NodeType.NAME));
 
 		if(next.type == Lexer.TokenType.VAR)
 		{
@@ -611,7 +604,7 @@ public class Parser
 	{
 		System.out.println("Parsing TYPE");
 
-		currentNode = currentNode.addChild(new ParseNode(NodeType.TYPE,next.data));
+		currentNode = currentNode.addChild(new ParseNode(NodeType.TYPE));
 
 		match(Lexer.TokenType.TYPE);
 
@@ -627,7 +620,8 @@ public class Parser
 			System.out.println("Syntax Error: Unable to match token type " + type.toString() + " at position " + currentPos);
 			System.out.println("Found " + next.type.toString() + " instead");
 			System.exit(1);
-		}	
+		}
+		currentNode.addChild(new ParseNode(NodeType.TERMINAL, next.data));
 		next = tokenArray.get(++currentPos);
 	}
 	public void match(String input)
@@ -639,6 +633,7 @@ public class Parser
 			System.out.println("Found " + next.data + " instead");
 			System.exit(1);
 		}
+		currentNode.addChild(new ParseNode(NodeType.TERMINAL, next.data));
 		next = tokenArray.get(++currentPos);
 	}
 }

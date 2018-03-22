@@ -27,7 +27,7 @@ public class ParseNode
 	public ParseNode addChild(ParseNode node)
 	{
 		node.parent=this;
-		children.add(node);
+		children.push(node);
 		return node;
 	}
 

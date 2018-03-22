@@ -36,7 +36,7 @@ public class Pruner
 				TempToken tok = new TempToken(temp[0], NodeType.valueOf(temp[1]), temp[2]);
 				for(int i = 3; i < temp.length; i++)
 				{
-					tok.childrenIds.add(temp[i]);
+					tok.childrenIds.push(temp[i]);
 				}
 				tokenList.add(tok);
 			}
@@ -62,7 +62,7 @@ public class Pruner
 				{
 					if(s.equals(n.id))
 					{
-						t.children.add(n);
+						t.children.push(n);
 						n.parent = t;
 						break;
 					}
@@ -78,16 +78,7 @@ public class Pruner
 
 	boolean isTerminal(TempToken n)
 	{
-		switch(n.type)
-		{
-			case VAR:
-				return true;
-			case STR:
-				return true;
-			case TYPE:
-				return true;
-			default: return false;
-		}
+		return n.type == NodeType.TERMINAL;
 	}
 
 	void prune(TempToken n)
@@ -95,19 +86,37 @@ public class Pruner
 		LinkedList<TempToken> toRemove = new LinkedList<TempToken>();
 		for(TempToken t : n.children)
 		{
-			if(t.children.size() == 1)
+			if(t.children.size() == 1 && !isTerminal(t.children.get(0)))
 			{
 				toRemove.add(t);
 				System.out.println("Removing node " + t.id + " with type " + t.type);
+			}
+			
+			else if(isTerminal(t))
+			{
+				if(t.data.equals(";") || t.data.equals("{") || t.data.equals("}") || t.data.equals("(") || t.data.equals(")")
+						|| t.data.equals("else") || t.data.equals("then") || t.data.equals("else") || t.data.equals("if")
+						|| t.data.equals("while") || t.data.equals("for") || t.data.equals("not") || t.data.equals("and")
+						|| t.data.equals("or") || t.data.equals("add") || t.data.equals("sub") || t.data.equals("mult")
+						|| t.data.equals("<") || t.data.equals(">") || t.data.equals("eq") || t.data.equals(",")
+						|| t.data.equals("output") || t.data.equals("input") || t.data.equals("proc") || t.data.equals("=")
+						|| t.data.equals("$"))
+				{
+					toRemove.add(t);
+					System.out.println("Removing terminal " + t.id + " with data " + t.data);
+				}
 			}
 		}
 		for(TempToken t : toRemove)
 		{
 			n.children.remove(t);
-			n.children.add(t.children.get(0));
-			t.children.get(0).parent = n;
+			for(TempToken m : t.children)
+			{
+				n.children.push(m);
+				m.parent = n;
+			}
 		}
-
+		
 		for(TempToken t : n.children)
 			prune(t);
 	}
