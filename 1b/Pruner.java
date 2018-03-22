@@ -3,6 +3,7 @@ import java.util.Scanner;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.File;
+import java.util.Comparator;
 
 public class Pruner
 {
@@ -33,10 +34,10 @@ public class Pruner
 			{
 				line = sc.next();
 				String temp[] = line.split("\\|");
-				TempToken tok = new TempToken(temp[0], NodeType.valueOf(temp[1]), temp[2]);
+				TempToken tok = new TempToken(Integer.parseInt(temp[0]), NodeType.valueOf(temp[1]), temp[2]);
 				for(int i = 3; i < temp.length; i++)
 				{
-					tok.childrenIds.add(temp[i]);
+					tok.childrenIds.add(Integer.parseInt(temp[i]));
 				}
 				tokenList.add(tok);
 			}
@@ -56,11 +57,11 @@ public class Pruner
 		head = tokenList.get(0);
 		for(TempToken t : tokenList)
 		{
-			for(String s : t.childrenIds)
+			for(int s : t.childrenIds)
 			{
 				for(TempToken n : tokenList)
 				{
-					if(s.equals(n.id))
+					if(s == n.id)
 					{
 						t.children.add(n);
 						n.parent = t;
@@ -84,7 +85,6 @@ public class Pruner
 	void prune(TempToken n)
 	{
 		LinkedList<TempToken> toRemove = new LinkedList<TempToken>();
-		LinkedList<TempToken> toFlatten = new LinkedList<TempToken>();
 		if(n.children.size() == 1 && isTerminal(n.children.get(0)))
 		{
 			n.data = n.children.get(0).data;
@@ -93,7 +93,7 @@ public class Pruner
 		}
 		for(TempToken t : n.children)
 		{
-			if(t.children.size() == 1 && !isTerminal(t.children.get(0)))
+			if(t.children.size() == 1 && !isTerminal(t.children.get(0)) && t.type != NodeType.IO && !t.data.equals("not"))
 			{
 				toRemove.add(t);
 				System.out.println("Removing node " + t.id + " with type " + t.type);
@@ -112,7 +112,7 @@ public class Pruner
 						|| t.data.equals("or") || t.data.equals("add") || t.data.equals("sub") || t.data.equals("mult")
 						|| t.data.equals("<") || t.data.equals(">") || t.data.equals("eq") || t.data.equals(",")
 						|| t.data.equals("output") || t.data.equals("input") || t.data.equals("proc") || t.data.equals("=")
-						|| t.data.equals("$"))
+						|| t.data.equals("$") || t.data.equals("then"))
 				{
 					toRemove.add(t);
 					System.out.println("Removing terminal " + t.id + " with data " + t.data);
@@ -131,6 +131,13 @@ public class Pruner
 
 		for(TempToken t : n.children)
 			prune(t);
+		n.children.sort(new Comparator<TempToken>() {
+			@Override
+			public int compare(TempToken o1, TempToken o2)
+			{
+				return Integer.compare(o1.id, o2.id);
+			}
+		});
 	}
 
 	void print(String filename)
@@ -170,18 +177,18 @@ public class Pruner
 
 	public class TempToken
 	{
-		String id;
+		int id;
 		NodeType type;
 		String data;
-		LinkedList<String> childrenIds;
+		LinkedList<Integer> childrenIds;
 		LinkedList<TempToken> children;
 		TempToken parent;
-		public TempToken(String id, NodeType type, String data)
+		public TempToken(int id, NodeType type, String data)
 		{
 			this.id = id;
 			this.type = type;
 			this.data = data;
-			this.childrenIds = new LinkedList<String>();
+			this.childrenIds = new LinkedList<Integer>();
 			this.children = new LinkedList<TempToken>();
 			this.parent = null;
 		}

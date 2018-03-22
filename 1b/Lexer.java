@@ -149,6 +149,12 @@ public class Lexer
 						tokenList.add(new Token(TokenType.ASSIGN,"="));
 						//assignment operator
 						break;
+					case 'T':
+						tokenList.add(new Token(TokenType.TRUTH, "T"));
+						break;
+					case 'F':
+						tokenList.add(new Token(TokenType.TRUTH, "F"));
+						break;
 					default:
 						System.out.println("Error reading char: "+ current + " aborting");
 						System.exit(0);

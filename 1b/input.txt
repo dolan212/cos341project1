@@ -4,6 +4,9 @@ string s;
 n = x;
 r = "unknown";
 s = "even";
+y = not a > b;
+y = not T;
+f = add(a, 2);
 checknumber;
 if( eq(r,s) )
 then { output(s) }
